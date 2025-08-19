@@ -1,0 +1,39 @@
+
+	Green LED -> Scan 125KhZ
+		14 
+		
+	Red Led   -> Scan 13.5MhZ
+		15 
+	
+	Buzzer    -> Scan Tone
+	    4 
+	
+	UART Communication ->  16-RX 17-TX
+	
+	I2C  Communication ->  21-SDA 22-SCL
+	
+	125-RFID ->  
+		25 -> 125kHz PWM Output
+		26 -> Read Pulses Input
+		
+	PN532-RFID ->
+		5  ->SS
+		18 ->SCK
+		19 ->MISO
+		23 ->MOSI
+		13 ->IRQ (Interrupt) - Input
+		   
+	Address Input -> 4-Dip-Switch
+		34,35,36,39  -> Use External PullUP or Pulldown Resistor (No Internal)
+		
+	General Function Pins -> 2-Dip-Swtich maybe
+		32,33
+		
+		32 - Play BUS or UART 
+		33 - Disable/Enable Buzzer
+		
+	Ledring WS
+		27
+		
+	
+		
