@@ -148,9 +148,11 @@ bool Rfid_125KHz::loop() {
 			
 			
             //Serial.printf("Tag is %s\n",currentTagS);		
+            Serial.printf("oldTag is %llu newTag is %llu [NOISE------------------------------]\n", lastTag, currentTag);
             lastTag = currentTag; 
 			updated = true;
 			digitalWrite(ledPin,HIGH);
+            
         }
         if (dbgNormal) Serial.println();		
     }
