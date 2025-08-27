@@ -5,12 +5,23 @@
 
 class Rfid_125KHz {
 public:
+    // Callback function types
+    typedef void (*TagCallback)(uint32_t tagNumber);
+    typedef void (*TagCallbackChange)(uint32_t tagNumber, uint32_t oldTagNumber);
+    
     // Constructor to initialize the class with specific settings
     Rfid_125KHz(float frequency, int demod_pin, int clock_pin, int led_pin , bool modulationType);
 
     bool dbgVerbose;
     bool dbgNormal;
 	char currentTagStr[17];
+
+     uint32_t consecutiveSameTagCount = 0;
+    
+    // Callback functions
+    TagCallback onInsert = nullptr;
+    TagCallback onRemove = nullptr;
+    TagCallbackChange onChange = nullptr;
 
     // Public methods
     void setup();
@@ -19,6 +30,10 @@ public:
 
     static void IRAM_ATTR demodISR();
     
+    uint32_t getCurrentValue() {
+       return (uint32_t)currentTag;
+    }
+
     
 private:
     // Private attributes
@@ -28,6 +43,7 @@ private:
     float rfidFreq;
     bool encodeFDX;
     uint64_t currentTag;
+    uint64_t previousTag = 0;  // Track previous tag for change detection
     char encodingStr[17];
     
     bool buttonPressed;
@@ -35,6 +51,7 @@ private:
     bool simulation = false;
     void demodSim();
 
+   
 
     uint32_t microsConsiderTagIsOut = 150e3; //ms
 	unsigned long validRfidTimeout = 1e3; //ms

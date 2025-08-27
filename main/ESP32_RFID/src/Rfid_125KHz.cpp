@@ -136,24 +136,38 @@ bool Rfid_125KHz::loop() {
     //sprintf(currentTagS, "%llu", currentTag);
     //Serial.printf("currentTag = %s \n",currentTagS);   
 	
-		
-	
         if (currentTag != lastTag ) {         
-		
             //char lastTagS[21]; // Max 20 digits for uint64_t + 1 for null terminator
             //char currentTagS[21]; // Max 20 digits for uint64_t + 1 for null terminator          
             //sprintf(lastTagS, "%llu", lastTag); 
             //sprintf(currentTagS, "%llu", currentTag);
             //Serial.printf("lastTag = %s | currentTag = %s \n",lastTagS,currentTagS);    
-			
-			
             //Serial.printf("Tag is %s\n",currentTagS);		
-            Serial.printf("oldTag is %llu newTag is %llu [NOISE------------------------------]\n", lastTag, currentTag);
-            lastTag = currentTag; 
+            if (lastTag != 0 && currentTag != 0) {
+                if (dbgNormal) Serial.printf("[NOISE------------------------------] old was %llu newTag is %llu \n", lastTag, currentTag);
+                // Tag changed from one to another
+                if (onChange) {
+                    uint32_t tagNumber = (uint32_t)currentTag;
+                    onChange(tagNumber,lastTag);
+                }
+            } else if (lastTag == 0 && currentTag != 0) {
+                // New tag inserted
+                if (onInsert) {
+                    uint32_t tagNumber = (uint32_t)currentTag;
+                    onInsert(tagNumber);
+                }
+            }   
+            consecutiveSameTagCount = 0;
+            lastTag = currentTag;
 			updated = true;
-			digitalWrite(ledPin,HIGH);
-            
         }
+
+        if (currentTag == lastTag) {
+            consecutiveSameTagCount++;
+        }
+
+        
+
         if (dbgNormal) Serial.println();		
     }
     else if (!haveTag && lastTag!=0) {
@@ -176,10 +190,16 @@ bool Rfid_125KHz::loop() {
           //Serial.printf("Time without Interrupt: %u in uS \n", noInterruptsTimePassed);
 		  		
           //Serial.printf("Tag is out \n");    
-		  memset(currentTagStr,0,sizeof(currentTagStr));		  
+		  memset(currentTagStr,0,sizeof(currentTagStr));
+          currentTag = 0;
+          
+          // Tag removed
+          if (onRemove) {
+              onRemove(lastTag);
+          }
+          
           lastTag = 0;	  
 		  updated = true;
-		  digitalWrite(ledPin,LOW);
       }
     }
 	

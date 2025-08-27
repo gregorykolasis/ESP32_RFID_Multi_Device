@@ -11,8 +11,16 @@ enum READ_TYPES_RFID_READER_135MHZ : uint8_t{
 
 class Rfid_135MHz {
 public:
+    // Callback function types
+    typedef void (*TagCallback)(uint32_t tagNumber);
+    
     // Constructor
     Rfid_135MHz(uint8_t ss_pin, uint8_t irq_pin, uint8_t led_pin);
+    
+    // Callback functions
+    TagCallback onInsert = nullptr;
+    TagCallback onRemove = nullptr;
+    TagCallback onChange = nullptr;
 
     // Initialize the NFC reader
     bool begin();
@@ -84,6 +92,7 @@ private:
 	void resetTag();
 		
 	uint32_t currentTag;
+	uint32_t previousTag = 0;  // Track previous tag for change detection
 	bool tagIsHere = false;
     
     // IRQ management

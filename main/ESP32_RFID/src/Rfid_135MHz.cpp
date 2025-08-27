@@ -10,14 +10,12 @@ Rfid_135MHz::Rfid_135MHz(uint8_t ss_pin, uint8_t irq_pin, uint8_t led_pin)
 
 // Initialize the NFC reader
 bool Rfid_135MHz::begin() {
-    pinMode(ledPin, OUTPUT);
-    digitalWrite(ledPin, LOW);
+    // LED control is now handled by callbacks
 
     nfc.begin();
     bool init = getFirmwareVersion();
 
     startListening();
-
     return init;
 }
 
@@ -50,11 +48,7 @@ void Rfid_135MHz::startListening() {
     if (!nfc.startPassiveTargetIDDetection(PN532_MIFARE_ISO14443A)) {	
 		resetTag();
         if (dbgNormal) Serial.println("No card found. Waiting...");
-        if (stateLed) {
-            if (dbgNormal) Serial.println("LED_135MHZ Closed");
-            digitalWrite(ledPin, LOW);
-            stateLed = false;
-        }
+        // LED control is now handled by callbacks
     } else {
         if (dbgNormal) Serial.println("Card already present.");
         handleCardDetected();
@@ -85,12 +79,7 @@ void Rfid_135MHz::handleCardDetected() {
             //extractUUID(uid);
         }
 
-        // Update LED state
-        if (!stateLed) {
-            if (dbgNormal) Serial.println("LED_135MHZ Open");
-            digitalWrite(ledPin, HIGH);
-            stateLed = true;
-        }
+        // LED control is now handled by callbacks
         timeLastCardRead = millis();
         readerDisabled = true;
     } else {
@@ -240,12 +229,29 @@ bool Rfid_135MHz::loop() {
 	
 	if (haveTag && currentTag!=0) {	
 		if (currentTag != lastTag ) {  
+			if (lastTag != 0 && currentTag != 0) {
+                // Tag changed from one to another
+                if (onChange) {
+                    onChange(currentTag);
+                }
+            } else if (lastTag == 0 && currentTag != 0) {
+                // New tag inserted
+                if (onInsert) {
+                    onInsert(currentTag);
+                }
+            }
+            
 			lastTag = currentTag; 
 			updated = true;
 		}
 		
 	}
 	if (!haveTag && lastTag!=0) { 
+		// Tag removed
+        if (onRemove) {
+            onRemove(0);
+        }
+        
 		lastTag = 0;
 		updated = true;
 	}
