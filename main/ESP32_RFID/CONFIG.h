@@ -35,6 +35,9 @@ char tag135MHzStr[17];
 uint32_t tag125KHzNumber;
 uint32_t tag135MHzNumber;
 
+bool nfcReady = false;
+bool tagReady = false;
+
 void dummmyI2C();
 void receiveEventI2C(int howMany);
 void requestEventi2C();
@@ -43,3 +46,14 @@ void readAddrI2C();
 void prepareJsonI2C();
 
 #include "I2C-Slave.h"
+
+#if defined(ESP32)
+  #define USE_SPIFFS            true
+  #define ESP_DRD_USE_EEPROM    true
+#else
+  #error This code is intended to run on the ESP32 platform! Please check your Tools->Board setting.
+#endif
+#define DRD_TIMEOUT             1
+#define DRD_ADDRESS             0
+#include <ESP_DoubleResetDetector.h>            //https://github.com/khoih-prog/ESP_DoubleResetDetector
+DoubleResetDetector* drd;

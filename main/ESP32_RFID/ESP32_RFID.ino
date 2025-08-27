@@ -42,7 +42,9 @@ void readRFID() {
         tag125KHzNumber = 0;
       }
     }
-    
+
+    if (!nfcReady) return;
+      
     if ( nfc.loop() ) {
       sprintf(tag135MHzStr,"%s",nfc.currentTagStr);
       if (strlen(tag135MHzStr)>0) {
@@ -78,29 +80,45 @@ void readButtonGPIO0() {
   
 }
 
+void setup125Khz() {
+
+  tag.dbgNormal = false;
+  tag.setup();
+
+  Serial2.begin(RDM6300_BAUDRATE, SERIAL_8N1, RDM6300_RX_PIN , RDM6300_TX_PIN); //RDM6300 emulation on TX pin
+}
+
+void setupNfc() {
+
+  nfc.setReadType(NFC_SIMPLE_3BYTE_READ);
+  nfc.delayBetweenCards = 0;
+  nfc.dbgNormal = false;
+  if ( !nfc.begin() ) {
+    //Serial.printf("Couldn't find RFID Reader at 13.5MHz\n");  
+  }
+
+}
+
+void setupDrd() {
+  drd = new DoubleResetDetector(DRD_TIMEOUT, DRD_ADDRESS);
+  if (drd->detectDoubleReset())
+  {
+    Serial.println(F("DRD"));
+  }
+}
+
 void setup() {
-  
     Serial.begin(115200);
-    
+    setupDrd();
     //setupSlaveI2C();      //Setup slaveI2C
-
-    tag.dbgNormal = false;
-    tag.setup();
-    
-    nfc.setReadType(NFC_SIMPLE_3BYTE_READ);
-    nfc.delayBetweenCards = 0;
-    nfc.dbgNormal = false;
-    if ( !nfc.begin() ) {
-      //Serial.printf("Couldn't find RFID Reader at 13.5MHz\n");  
-    }
+    setup125Khz();
+    //setupNfc();
     pinMode(BUTTON_PIN, INPUT_PULLUP);  // Configure button with internal pull-up
-
-    Serial2.begin(RDM6300_BAUDRATE, SERIAL_8N1, RDM6300_RX_PIN , RDM6300_TX_PIN); //RDM6300 emulation on TX pin
 }
 
 void loop() {
  
     readRFID();
-    readButtonGPIO0();
-
+    //readButtonGPIO0();
+    drd->loop();
 }
